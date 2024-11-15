@@ -1,0 +1,157 @@
+%% file name of LibreText pdf
+\newcommand{\thebookpdf}{101_text_v0.2}
+
+%%% Run lualatex on doc-extract-newpax.tex to generate .newpax file(s)
+\DocumentMetadata{uncompress} % needed for newpax to get pdf links transferred
+
+\pdfminorversion=7 % versioning of included pdfs vs pdflatex-generated pdf
+
+\documentclass[twopage]{book}
+\usepackage[left=0.73in,
+			top=0.745in,
+			headheight=0.33in,
+			headsep=0.115in,
+			width=7.04in,
+			textheight=9.36in,
+			footskip=0.59in,
+			%showframe,
+			]{geometry}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage[explicit]{titlesec}
+\usepackage{pdfpages}
+\usepackage[most]{tcolorbox}
+\usepackage{newpax} % to restore links in included pdfs (they get stripped)
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, 
+			allcolors=black,  
+			linktoc=all, % links in TOC to sections and subsections
+			}
+\usepackage[absolute]{textpos} % absolute option puts anchor in top-left of page
+
+%%% HEADERS AND FOOTERS
+\fancyhead{} % clear header
+\fancyfoot{} % clear footer
+\renewcommand{\headrulewidth}{0pt} % no line under header
+\fancyhead[LE]{\hspace*{-0.7cm}\textbf{\thepage}\qquad\nouppercase{\leftmark}}
+\fancyhead[RO]{\nouppercase{\rightmark}\qquad\textbf{\thepage}}
+
+%% helper function to include chapter or section pdf and put it in TOC
+% first argument is text for table of contents
+% second argument is page range
+% third argument is '\section' or '\subsection'
+% pagecommand is all pages; pagecommand* is only first page
+% textblock & tcolorbox cover up logo in upper-left and footer bar
+% %%% THIS MAY NEED TO ADJUST IF SHRINKING PAGES for BOUND PRINTING...
+\newcounter{pdfpage}
+\newcounter{mypagebeg}
+\newcounter{mypageend}
+\newcommand{\pdftoc}[3]{
+	\setcounter{mypagebeg}{\value{pdfpage}} % start page
+	\setcounter{mypageend}{\value{pdfpage}+#2-1} % end page
+	\includepdf[pages=\arabic{mypagebeg}-\arabic{mypageend},
+				pagecommand*={#3{#1}\thispagestyle{fancy}},
+				pagecommand={
+						\thispagestyle{fancy}
+						% cover up logo in upper-left
+						\begin{textblock*}{5cm}(1.3cm,0.75cm)
+							\begin{tcolorbox}[colback=white,
+											  colframe=white,
+											  width=3.3cm,
+											  height=0.34in,
+											  ]
+							\end{tcolorbox}
+						\end{textblock*}
+						% cover up footer bar
+						% units are 1/16th of width and height
+						\begin{textblock}{16}(0.6,15.13)
+							\begin{tcolorbox}[colback=white,
+											  colframe=white,
+											  width=20cm,
+											  %width=\paperwidth, % eff-it
+											  height=0.8cm,
+											  ]
+							\end{tcolorbox}
+						\end{textblock}
+				  }
+				]
+				{\thebookpdf}
+	\setcounter{pdfpage}{\value{mypageend}+1} % update start page
+}
+
+%% helper function to include chapter-begin pdf and put it in TOC
+% first argument is text for table of contents
+% second argument is number of pages
+\newcommand{\pdfsec}[2]{\cleardoublepage\pdftoc{#1}{#2}{\chapter}}
+
+%% helper function to include chapter-section pdf and put it in TOC
+% first argument is text for table of contents
+% second argument is number of pages
+\newcommand{\pdfsubsec}[2]{\pdftoc{#1}{#2}{\section}}
+
+% Don't print Chapter/Section headings on page where they're declared
+\titleformat{\chapter}[block]{}{}{0pt}{} % don't print "Chapter 3: BLAH"
+\titleformat{\section}[block]{}{}{0pt}{} % don't print "3.1: Blah"
+\titleformat{\subsection}{}{}{0pt}{} % for good measure...
+\titleformat{\subsubsection}{}{}{0pt}{} % why not?
+\titlespacing{\chapter}{0pt}{-15pt}{0pt} % move TOC up (uses chapter)
+
+
+\begin{document}
+%%% FRONTMATTER
+\frontmatter
+% disable page anchors to avoid warnings about "destination with the same 
+% identifier (name{page.1}) has been already used" 
+\hypersetup{pageanchor=false} 
+% Cover page: 
+\includepdf[pages=1,
+			pagecommand={\thispagestyle{empty}} % no headers/footers
+		   ]{\thebookpdf}
+\newpage\thispagestyle{empty}\null% skip page for two-page binding
+% title page and copyright page
+\includepdf[pages=2-3,
+			pagecommand={\thispagestyle{empty}} % no headers/footers
+		   ]{\thebookpdf}
+\hypersetup{pageanchor=true} % re-enable page anchors for links
+
+%%% TABLE OF CONTENTS
+\newpage
+\pagestyle{fancyplain}
+\pagenumbering{roman}\setcounter{page}{1} % now start roman numerals at 1
+\onehalfspacing
+\vspace*{-0.1cm} % should be positive, but whatever
+\begin{centering}\includegraphics{tocBanner}\end{centering} % blue banner
+\begingroup % necessary
+\let\clearpage\relax % don't make a new page for TOC
+\tableofcontents
+\endgroup % necessary
+
+
+%%% BODY
+\mainmatter
+\pagestyle{fancy}
+\pagenumbering{arabic}\setcounter{page}{1} % start arabic numerals at 1
+
+\setcounter{pdfpage}{9} % startpage
+% argument to pdfsec and pdfsubsec is number of pages
+\pdfsec{Linear Functions}{1}
+\pdfsubsec{Introduction to Linear Functions}{1}
+\pdfsubsec{The Rectangular Coordinate Systems and Graphs}{16}
+\pdfsubsec{Linear Functions}{24}
+
+
+%%% BACKMATTER
+\backmatter
+
+\makeatletter\renewcommand{\chaptermark}[1]{\markboth{#1}{}}\makeatother
+\pagestyle{fancy}
+\setcounter{pdfpage}{542}
+\pdfsec{Index}{2}
+\setcounter{pdfpage}{545}
+\pdfsec{Licensing}{3}
+
+\end{document}
+
+%%% Some links are showing up correctly in the .newpax file, and correctly in 
+%%% the link hovertext in Preview / Acrobat Reader but the actual link it takes
+%%% you to in a web browser is incorrect (it's a different one in the pdf)

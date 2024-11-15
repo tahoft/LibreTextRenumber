@@ -1,0 +1,11 @@
+\documentclass{article}
+% load the lua code
+\directlua{require("newpax")}
+% write .newpax files for newpax.sty
+\directlua
+{
+% filenames of all the pdfs
+newpax.writenewpax("101_text_v0.2")
+}
+\begin{document}
+\end{document}
